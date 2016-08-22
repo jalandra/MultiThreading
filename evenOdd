@@ -1,4 +1,4 @@
-lass MMT implements Runnable{
+Class MMT implements Runnable{
 	int i;
 	mmt(){
 		i = 1;
