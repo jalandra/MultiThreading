@@ -1,0 +1,66 @@
+#include<iostream>
+
+extern "C" 
+{
+    #include <pthread.h>
+}
+ 
+using namespace std;
+
+pthread_mutex_t count_mutex     = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t  condition_var   = PTHREAD_COND_INITIALIZER;
+
+class OddEven{
+    private:
+        static int count;
+    public:
+        OddEven(int c){
+        }
+        static void* printEven(void *a){
+            //pthread_mutex_lock( &count_mutex );
+            if(count>100){
+                pthread_exit(NULL);
+                return NULL;
+            }
+            if(count%2 !=0){
+                pthread_cond_wait(&condition_var, &count_mutex);   
+            } else{
+                cout<<count<<endl;
+                count = count+1;
+                pthread_cond_signal(&condition_var);
+            }
+            //pthread_mutex_unlock( &count_mutex );
+            printEven(NULL);
+        }
+        
+        static void* printOdd(void *a){
+            //pthread_mutex_lock(&count_mutex);
+            if(count>100){
+                pthread_exit(NULL);
+                return NULL;
+            }
+            if(count%2 ==0){
+                pthread_cond_wait(&condition_var, &count_mutex);   
+            } else{
+                cout<<count<<endl;
+                count = count+1;
+                pthread_cond_signal(&condition_var);
+            }
+            //pthread_mutex_unlock(&count_mutex);
+            printOdd(NULL);
+        }
+        ~OddEven(){
+        }       
+};
+
+int OddEven::count =0;
+
+int main(){
+    OddEven obj(0);
+    pthread_t evenThread, oddThread;
+    pthread_create(&evenThread,NULL,OddEven::printEven,NULL);
+    pthread_create(&oddThread,NULL,OddEven::printOdd,NULL);
+    pthread_join(evenThread,NULL);
+    pthread_join(oddThread,NULL);
+    return 0;
+}
